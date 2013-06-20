@@ -10,7 +10,10 @@
   information like Junos OS version, hardware model, serial-number, etc.
   
   ARGUMENTS:
-    host    - The hostname/ip-address of the target Junos device
+    host        - The hostname/ip-address of the target Junos device
+    
+    user        - The login user, default from ENV['USER']
+    password    - The login password.  If not provided, then ssh-key is assumed
     
   RETURNS:
     Hash of Junos device "facts"
@@ -37,8 +40,8 @@ ansible_args = JSON.parse( File.read( ARGV[0] ))
 
 login = {}
 login[:target] = ansible_args['host']
-login[:username] = 'root'
-login[:password] = 'juniper1'
+login[:username] = ansible_args['user'] || ENV['USER']
+login[:password] = ansible_args['password'] || nil
 
 Netconf::SSH.new( login ) do |ndev|
   Junos::Ez::Provider( ndev )

@@ -28,6 +28,8 @@
                   contents provided.  when False, the file contents are "merged"
                   into the existing configuration
   
+    user        - The login user, default from ENV['USER']
+    password    - The login password.  If not provided, then ssh-key is assumed                  
     
   RETURNS:
   
@@ -87,7 +89,12 @@ log.info( "/START: config-install for inventory_hostname: #{ hostname }" )
 # Open a connection to the Junos target
 # -------------------------------------------------------------------
 
-ndev = Netconf::SSH.new( :target => target, :username => 'root', :password => 'juniper1' )
+login = {}
+login[:target] = ansible_args['host']
+login[:username] = ansible_args['user'] || ENV['USER']
+login[:password] = ansible_args['password'] || nil
+
+ndev = Netconf::SSH.new( login )
 ndev.open
 
 # -------------------------------------------------------------------
