@@ -11,8 +11,10 @@
     (*TO-DO*: add the ability to save a rescue config to this module)
   
   ARGUMENTS:
+  [required]  
     host        - The hostname/ip-address of the target Junos device
 
+  [credientials]
     user        - The login user, default from ENV['USER']
     password    - The login password.  If not provided, then ssh-key is assumed      
  
@@ -22,8 +24,7 @@
     changed => 'true', always
 
   NOTES:
-      
-    Junos username/password currently hardcoded; need to fix this args + ssh_keys
+    none.
     
 =end
 

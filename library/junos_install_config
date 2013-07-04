@@ -20,14 +20,18 @@
       .xml = XML
   
   ARGUMENTS:
-  
+  [required[
     host        - The hostname/ip-address of the target Junos device
     file        - The configuration file to load
-    
+  
+  [options]
     override    - True/False*, when True will replace the entire config with the file
                   contents provided.  when False, the file contents are "merged"
                   into the existing configuration
-  
+    
+    log         - full path to logfile, /dev/null if not provided
+ 
+  [credentials]
     user        - The login user, default from ENV['USER']
     password    - The login password.  If not provided, then ssh-key is assumed                  
     
@@ -69,16 +73,16 @@ require 'junos-ez/stdlib'
 ansible_args = JSON.parse( File.read( ARGV[0] )) 
 
 hostname = ansible_args['host']
-target = hostname || ansible_args['target']
 file_on_server = ansible_args['file']
 file_name = File.basename( file_on_server )
+logfile_name = ansible_args['log'] || '/dev/null'
 
 # -------------------------------------------------------------------
 # setup a logger object to capture status/progress. Use mode "a+"
 # to append to the file
 # -------------------------------------------------------------------
 
-logfile = File.open( "/usr/local/junos/log/#{hostname}", "a+")
+logfile = File.open( logfile_name, "a+")
 logfile.sync = true
 log = Logger.new( logfile )
 log.progname = target

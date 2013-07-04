@@ -10,14 +10,18 @@
   is already present on the device, this module will return 'changed' => false.
   
   ARGUMENTS:
+  [required]
     host        - The hostname/ip-address of the target Junos device
     version     - The Junos OS version string, e.g. "12.2R3.5"
     package     - The full path to the Junos OS image file (.tgz)
     
+ [optional]   
     validate    - True/False*, used to perform OS validation as part of the install
     audit       - True/False*, when True only run audit
     reboot      - True/False*, when True reboot the Junos device after the OS is installed
-    
+    log         - The full path to create a log file; /dev/null by default
+
+  [credentials]    
     user        - The login user, default from ENV['USER']
     password    - The login password.  If not provided, then ssh-key is assumed     
   
@@ -56,13 +60,7 @@
   NOTES:
   
     Junos OS install is IDEMPOTENT.
-    
-    A logfile is created in /usr/local/junos/log/<host> to indicate progress of this 
-    activity.  For now, the PATH and existing of this logfile is hardcoded.  Likely need
-    to fix this.
-    
-    user/password currently hardcoded; need to fix this args + ssh_keys
-    
+        
 =end
 
 require 'rubygems'
@@ -81,13 +79,14 @@ validate_image = ansible_args['validate']
 package_version = ansible_args['version']
 package_filename = ansible_args['package']
 audit_only = ansible_args['audit'] || false
+log_filename = ansible_args['log'] || '/dev/null'
 
 # -------------------------------------------------------------------
 # setup a logger object to capture status/progress. Use mode "a+"
 # to append the file (i.e. clear it)
 # -------------------------------------------------------------------
 
-logfile = File.open( "/usr/local/junos/log/#{hostname}", "a+")
+logfile = File.open( log_filename, "a+")
 logfile.sync = true
 log = Logger.new( logfile )
 log.progname = hostname
@@ -126,7 +125,7 @@ if ndev.facts[:version] == package_version
 end
 
 if audit_only
-  log.info( "/INFO: version on target does not match, upgrade required" )
+  log.info( "/INFO: version on target does not match, UPGRADE REQUIRED" )
   log.info( "/END: software-install for inventory_hostname: #{ hostname }" )
   print JSON.dump({ 'changed' => true,
     'has_version' => ndev.facts[:version],

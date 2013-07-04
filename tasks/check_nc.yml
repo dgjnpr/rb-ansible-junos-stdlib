@@ -1,3 +1,0 @@
----
-- name: Checking NETCONF reachablility to device
-  wait_for: host="{{ inventory_hostname }}" port=830 timeout="{{ timeout }}"

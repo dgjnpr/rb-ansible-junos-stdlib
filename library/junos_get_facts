@@ -10,8 +10,10 @@
   information like Junos OS version, hardware model, serial-number, etc.
   
   ARGUMENTS:
+  [required]
     host        - The hostname/ip-address of the target Junos device
-    
+  
+  [credentials]
     user        - The login user, default from ENV['USER']
     password    - The login password.  If not provided, then ssh-key is assumed
     
@@ -26,8 +28,6 @@
 
   NOTES:
     Does not set 'changed' in return Hash
-    
-    username/password currently hardcoded - WILL FIX.
     
 =end
 
