@@ -1,7 +1,11 @@
 DESCRIPTION
 ===========
 
-__EXPERIMENTAL!!__  Junos modules written to work with [Anisble 1.2](http://www.ansibleworks.com).  These modules use the `connection: local` method to establish a NETCONF connection from the ansible server to the remote Junos devices.  No additional software is required to be installed on the Junos device.
+  Junos modules written to work with [Anisble 1.2](http://www.ansibleworks.com).  
+
+  These modules use the `connection: local` method to establish a NETCONF connection from the ansible server to the remote Junos devices.  No additional software is required to be installed on the Junos device.
+  
+  The NETCONF connection is between the server and the Junos device.  Therefore the `ansible_ssh_user` parameter does not apply.  Nor does using the -k or -u options to `ansible-playbook` apply.  Each of the modules supports `user` and `password` arguments.  The `user` will default to `$USER` and if no password is provided, then the modules are assuming that you are using ssh-keys.
 
 
 OVERVIEW
@@ -17,27 +21,6 @@ Ansible modules for Junos
 |   |-- junos_install_os
 |   `-- junos_rescue
 
-````
-
-Sample Task Files that use the modules
-````
-|-- tasks
-|   |-- check_nc.yml
-|   |-- junos_get_facts.yml
-|   |-- junos_install_config.yml
-|   |-- make_junos_conf.yml
-|   `-- wait_nc.yml
-````
-
-Sample playbooks that use the tasks and modules
-````
-|-- junos
-|   |-- audit_os.yml
-|   |-- get_junos_facts.yml
-|   |-- install_os.yml
-|   |-- nc_ready.yml
-|   |-- shutdown.yml
-|   `-- tasks -> ../tasks
 ````
 
 USAGE
