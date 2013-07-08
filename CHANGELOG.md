@@ -25,3 +25,8 @@
   
     Updated this repo to only include the Junos modules.  The sample tasks, playsbooks, etc., have
     been moved to the ansible-junos-demo repo.
+
+  0.2.1: 2013-07-08
+  
+    Updated `junos_rescue` to include `action` argument.  You can now load, save, delete the
+    Junos rescue configuration with this update
