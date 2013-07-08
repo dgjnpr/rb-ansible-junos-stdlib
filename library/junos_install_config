@@ -85,7 +85,7 @@ logfile_name = ansible_args['log'] || '/dev/null'
 logfile = File.open( logfile_name, "a+")
 logfile.sync = true
 log = Logger.new( logfile )
-log.progname = target
+log.progname = hostname
 
 log.info( "/START: config-install for inventory_hostname: #{ hostname }" )
 
