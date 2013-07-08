@@ -14,6 +14,12 @@
   [required]  
     host        - The hostname/ip-address of the target Junos device
 
+  [options]
+    action      - [load*, save, delete]
+                : load - loads the prior saved rescue configuration
+                : save - saves the current config as the rescue config
+                : delete - removes the rescue configuration
+    
   [credientials]
     user        - The login user, default from ENV['USER']
     password    - The login password.  If not provided, then ssh-key is assumed      
@@ -40,11 +46,24 @@ login[:target] = ansible_args['host']
 login[:username] = ansible_args['user'] || ENV['USER']
 login[:password] = ansible_args['password'] || nil
 
+rescue_action = ansible_args['action'] || 'load'
+  
 ndev = Netconf::SSH.new( login )
 ndev.open
-Netconf::SSH.new( login ) do |ndev|
-  ndev.rpc.load_configuration( :rescue => 'rescue' )
-  ndev.rpc.commit_configuration
+
+case rescue_action
+  when 'load'
+    ndev.rpc.load_configuration( :rescue => 'rescue' )
+    ndev.rpc.commit_configuration
+  when 'save'
+    ndev.rpc.request_save_rescue_configuration
+  when 'delete'
+    ndev.rpc.request_delete_rescue_configuration
+  else
+    ndev.close
+    print JSON.dump({'failed' => true, 'msg' => "invalid action: #{rescue_action}"})
+    exit(1)
 end
 
+ndev.close
 print JSON.dump({ 'changed' => true })
