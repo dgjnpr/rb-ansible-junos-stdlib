@@ -8,21 +8,6 @@ DESCRIPTION
   The NETCONF connection is between the server and the Junos device.  Therefore the `ansible_ssh_user` parameter does not apply.  Nor does using the -k or -u options to `ansible-playbook` apply.  Each of the modules supports `user` and `password` arguments.  The `user` will default to `$USER` and if no password is provided, then the modules are assuming that you are using ssh-keys.
 
 
-OVERVIEW
-========
-
-This repo contains the following directories
-
-Ansible modules for Junos
-````
-|-- library
-|   |-- junos_get_facts
-|   |-- junos_install_config
-|   |-- junos_install_os
-|   `-- junos_rescue
-
-````
-
 USAGE
 =====
 
@@ -38,6 +23,8 @@ MODULES
   * `junos_install_config` - used to install an entire Junos configuration ("override" mode) or just a configuration snippet ("merge" mode).  Configurations can be either in "set" format, "text" format, or "xml" format.
 
   * `junos_rescue` - used to reload the saved "rescue configuration" file.  This assumes that a rescue configuration file has be previously saved 
+  
+  * `junos_shutdown` - used to perform the shutdown action on the Junos device 
   
   For documentation on each of the above modules, please refer directly to the source code
 
