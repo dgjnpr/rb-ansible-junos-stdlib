@@ -1,0 +1,48 @@
+#!/usr/local/bin/ruby
+# WANT_JSON
+
+=begin
+
+  DESCRIPTION:
+    This module will shutdown a Junos device
+  
+  ARGUMENTS:
+  [required]
+    host        - The hostname/ip-address of the target Junos device
+  
+  [options]
+    in          - Amount of time (minutes) before shutting down.  Defaults to 0.
+    
+  [credentials]
+    user        - The login user, default from ENV['USER']
+    password    - The login password.  If not provided, then ssh-key is assumed
+    
+  RETURNS:
+      
+    
+=end
+
+require 'rubygems'
+require 'json'
+require 'net/netconf/jnpr'
+require 'junos-ez/stdlib'
+
+ansible_args = JSON.parse( File.read( ARGV[0] )) 
+
+login = {}
+login[:target] = ansible_args['host']
+login[:username] = ansible_args['user'] || ENV['USER']
+login[:password] = ansible_args['password'] || nil
+
+shutdown_in = ansible_args['in'] || 0
+
+Netconf::SSH.new( login ) do |ndev|
+  begin
+    ndev.rpc.request_power_off( :in => shutdown_in )
+  rescue
+    # ignore error due to losing connecting to device
+  end
+end
+
+print JSON.dump({'changed' => true })
+
