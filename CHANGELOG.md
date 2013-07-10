@@ -30,3 +30,7 @@
   
     Updated `junos_rescue` to include `action` argument.  You can now load, save, delete the
     Junos rescue configuration with this update
+
+  0.2.2: 2013-07-10
+  
+    Added `junos_shutdown` to perform a Junos device shutdown action
