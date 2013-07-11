@@ -51,12 +51,17 @@ rescue_action = ansible_args['action'] || 'load'
 ndev = Netconf::SSH.new( login )
 ndev.open
 
+Junos::Ez::Provider( ndev )
+
 case rescue_action
   when 'load'
     ndev.rpc.load_configuration( :rescue => 'rescue' )
     ndev.rpc.commit_configuration
   when 'save'
     ndev.rpc.request_save_rescue_configuration
+    if ndev.facts[:personality] == :SRX_BRANCH
+      ndev.rpc.request_system_autorecovery_state_save
+    end
   when 'delete'
     ndev.rpc.request_delete_rescue_configuration
   else
