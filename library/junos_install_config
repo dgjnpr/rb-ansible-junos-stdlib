@@ -90,6 +90,16 @@ log.progname = hostname
 log.info( "/START: config-install for inventory_hostname: #{ hostname }" )
 
 # -------------------------------------------------------------------
+# setup return hash to print at the end
+# -------------------------------------------------------------------
+
+result = {
+  'ansible_facts' => {
+    'reboot_required' => false
+  }
+}
+
+# -------------------------------------------------------------------
 # Open a connection to the Junos target
 # -------------------------------------------------------------------
 
@@ -114,7 +124,7 @@ Junos::Ez::Config::Utils( ndev, :cfg )
 
 def ansible_module_fail( ndev, err_msg )
   ndev.close
-  print JSON.dump({'failure' => true, 'msg' => err_msg })
+  print JSON.dump({'failed' => true, 'msg' => err_msg })
   exit( 1 )
 end
 
@@ -142,19 +152,17 @@ begin
   ndev.cfg.load!( load_opts )
   log.info("!OK/LOAD: configuration loaded OK.")
   
-rescue Netconf::LockError
-  err_msg = 'unable to acquire exclusive-lock'
-  log.error("!ERROR/LOCK: #{err_msg}")
-  ansible_module_fail( ndev, err_msg )
+rescue Netconf::LockError => e
+  rpc_err = Junos::Ez::rpc_errors( e.rsp )
+  log.error("!ERROR/LOCK: #{errs[0][:message]}")
+  ansible_module_fail( ndev, errs[0][:message] )
   # unreacable
   
 rescue Netconf::EditError => e
   rpc_err = Junos::Ez::rpc_errors( e.rsp )
   unless rpc_err[0][:severity] == 'warning'
-    err_msg = pp( rpc_err )
-    log.error("!ERROR/LOAD: #{err_msg}")
-    ansible_module_fail( ndev, err_msg )
-    #unreachable
+    log.error("!ERROR/LOAD: #{rpc_err[0][:message]}")
+    ansible_module_fail( ndev, rpc_err[0][:message] )
   else
     log.info("!OK/LOAD: configuration loaded OK, with warnings.")
   end
@@ -168,9 +176,10 @@ end # config-load sequence
 begin
   log.info("/COMMIT-CHECK: validating configuration ... ")
   unless (errs = ndev.cfg.commit?) == true
-    err_msg = pp( errs )
-    log.error( "!ERROR/COMMIT-CHECK: #{ err_msg }" )
-    ansible_module_fail( ndev, err_msg )
+    log.error( "!ERROR/COMMIT-CHECK: #{ errs[0][:message] }" )
+    if errs[0][:message].include?('Please reboot the system')
+      result['ansible_facts']['reboot_required'] = true
+    end
   end
   
   log.info("!OK/COMMIT-CHECK: configuration validated")
@@ -186,10 +195,13 @@ begin
   log.info("!OK/COMMIT: configuration now active")
 
 rescue Netconf::CommitError => e
-  err_msg = pp( Junos::Ez::rpc_errors( e.rpc ))
-  log.error( "!ERROR/COMMIT: #{err_msg}" )
-  ansible_module_fail( ndev, err_msg )
-  #unreachable  
+  unless e.to_s.include?('<ok/>')
+    log.error( "!ERROR/COMMIT: check syslog messages for specific error" )
+    ansible_module_fail( ndev, "check syslog messages for specific error" )
+  end
+  ndev.cfg.unlock!
+  
+  log.info("!OK/COMMIT: configuration now active")
 end
 
 ### -----------------------------------------------------------------
@@ -198,4 +210,5 @@ end
 
 log.info( "/END: config-install for inventory_hostname: #{ hostname }" )
 ndev.close
-print JSON.dump({ 'changed' => true })
+result['changed'] = true
+print JSON.dump(result)

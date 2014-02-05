@@ -1,0 +1,60 @@
+#!/usr/bin/env ruby
+# WANT_JSON
+
+=begin
+
+  DESCRIPTION:
+    This module will reboot one or more REs on a Junos device
+  
+  ARGUMENTS:
+  [required]
+    host        - The hostname/ip-address of the target Junos device
+  
+  [options]
+    in          - Amount of time (minutes) before shutting down.  Defaults to 0.
+    both        - Reboot both REs. Default is false
+    other       - Reboot the backup RE. Default is False
+    
+  [credentials]
+    user        - The login user, default from ENV['USER']
+    password    - The login password.  If not provided, then ssh-key is assumed
+    
+  RETURNS:
+      
+    
+=end
+
+require 'rubygems'
+require 'json'
+require 'net/netconf/jnpr'
+require 'junos-ez/stdlib'
+
+ansible_args = JSON.parse( File.read( ARGV[0] ) ) 
+
+login = {}
+login[:target]   = ansible_args['host']
+login[:username] = ansible_args['user'] || ENV['USER']
+login[:password] = ansible_args['password'] || nil
+
+result = { 'changed' => false }
+
+args = {
+  both_routing_engines: true,
+  other_routing_engine: true
+}
+args.delete(:both_routing_engines) unless ansible_args.key?('both')
+args.delete(:other_routing_engine) unless ansible_args.key?('other')
+
+Netconf::SSH.new( login ) do |ndev|
+  begin
+    ndev.rpc.request_reboot(args)
+    result['changed'] = true
+  rescue => e
+    ndev.close
+    print JSON.dump({'failed' => true, 'msg' => e.message })
+    exit( 1 )
+  end
+end
+
+print JSON.dump(result)
+
