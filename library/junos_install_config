@@ -196,8 +196,8 @@ begin
 
 rescue Netconf::CommitError => e
   unless e.to_s.include?('<ok/>')
-    log.error( "!ERROR/COMMIT: check syslog messages for specific error" )
-    ansible_module_fail( ndev, "check syslog messages for specific error" )
+    log.error( "!ERROR/COMMIT: #{e.to_s}" )
+    ansible_module_fail( ndev, e.to_s )
   end
   ndev.cfg.unlock!
   
